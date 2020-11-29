@@ -1,0 +1,158 @@
+---
+output:
+  bookdown::pdf_document2: default
+toc: false
+fontsize: 11pt
+editor_options: 
+  chunk_output_type: inline
+header-includes:
+  \usepackage{float}
+  \floatplacement{figure}{H}
+  \floatplacement{table}{H}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE) 
+```
+```{r include=FALSE}
+library(magrittr)
+
+data <- data<- read.csv('ghg_smap.csv')
+data$rownum <- seq(1, nrow(data)) #add row numbers
+
+#' Create unique article-level data for plots about articles
+articledat <- data %>%
+  dplyr::distinct(citation_full, .keep_all = TRUE)
+
+#Objects for text references
+num_art <- nrow(articledat)
+num_stud <- nrow(data)
+pub_typePC <- data.frame('Type' = rownames(as.data.frame((summary(as.factor(articledat$pub_type))))), 'Articles' = (as.data.frame((summary(as.factor(articledat$pub_type)))))[,1])
+type_art <- expss::vlookup('Article', pub_typePC, 'Articles')
+type_thes <- expss::vlookup('Thesis', pub_typePC, 'Articles')
+type_conf <- expss::vlookup('Conference Proceeding', pub_typePC, 'Articles')
+type_rep <- expss::vlookup('Report', pub_typePC, 'Articles')
+
+#' Summarise by country
+data$country <- gsub('Isreal', 'Israel', data$country)
+data$country <- gsub('UK', 'United Kingdom', data$country)
+data$country <- gsub('Scotland', 'United Kingdom', data$country)
+country_summary <- data %>% 
+  dplyr::count(country, sort = TRUE)
+country_summary <- country_summary[order(-country_summary$n),]
+above10pccountries <- subset(country_summary, n > (sum(n)/10))
+above10pccountries <- paste0(above10pccountries[,1], ' (', above10pccountries[,2], ')')
+
+#' Summarise by climate zone
+clim_summary <- data %>% 
+  dplyr::count(KPG_zone, sort = TRUE)
+clim_summary <- clim_summary[order(-clim_summary$n),] %>%
+  dplyr::rename('Köppen-Geiger climate zone' = KPG_zone)
+climtop <- clim_summary[1,]
+climtwo <- clim_summary[2,]
+climno <- subset(clim_summary, clim_summary$KPG_zone == '')[2]
+
+#' Summarise by soil texture classification
+data$soil_text_class <- trimws(data$soil_text_class)
+data$soil_text_class <- gsub('Clayloam', 'Clay loam', data$soil_text_class)
+data$soil_text_class <- gsub('NR', 'Not reported', data$soil_text_class)
+#data$soil_text_class <- gsub('Unclear', 'Unclear', data$soil_text_class) 
+data$soil_text_class[!nzchar(data$soil_text_class)] <- "Not reported"
+data$soilorder <- factor(data$soil_text_class, levels=c("Clay", "Clay loam", "Loam", "Loamy sand", "Sand", "Sandy clay",  "Sandy clay loam", "Sandy loam", "Silt", "Silt loam", "Silty clay", "Silty clay loam", "Unclear", "Not reported"))
+soil_summary <- data %>% 
+  dplyr::count(soil_text_class, sort = TRUE)
+soilnr <- expss::vlookup('Not reported', soil_summary, 'n')
+soilnrdat <- subset(data, soil_text_class == 'Not reported')
+soilnr_summary <- soilnrdat %>% 
+  dplyr::count(USDA_soil_class, FAO_soil_class, sort = TRUE) %>%
+  dplyr::rename('USDA soil classification' = USDA_soil_class, 'FAO soil classification' = FAO_soil_class)
+
+
+#' Field history
+data$field_hist_descr <- trimws(data$field_hist_descr)
+fhist_summary <- data %>% 
+  dplyr::count(field_hist_descr, sort = TRUE)
+fhist_yes <- expss::vlookup('Yes', fhist_summary, 'n')
+```
+
+# Results {-}
+## The systematic mapping process {-}
+Details of the number of records retained through each stage of the review process are provided in Figure \@ref(fig:flowchart). A total of xxx potentially relevant records were identified across the xxx resources searched. A total of xxx unique records was screened for eligibility, with xxx eligible records following full text screening. The final systematic map database contains `r num_stud` studies from `r num_art` articles.
+
+```{r flowchart, fig.cap="ROSES flow chart for the systematic map, showing the number of records retained at each stage of the review process. Produced using the ROSES Flow Chart App (Haddaway 2020).", echo=FALSE}
+plot(mtcars)
+```
+
+
+## The systematic map database and visualisations {-}
+### Descriptive information {-}
+
+**Publication year:** As expected, there has been a significant increase in the number of published articles on the topic over the last 20 years (Figure \@ref(fig:yearplot)). Interestingly, there may be evidence of a reduction in publication rate over the most recent 5 years from 2014 to 2018. The earliest record in our database is from 1981. Since searches were performed in 2019, representation from this year is incomplete.
+
+```{r yearplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Plot showing the final number of articles included in the systematic map by publication year.", fig.width=10, fig.height=5}
+ggplot2::ggplot(data = articledat, 
+                           ggplot2::aes(x = as.numeric(year))) +
+  ggplot2::geom_bar(stat = "bin", 
+                    binwidth = 1, 
+                    color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::theme_minimal() + 
+  ggplot2::labs(
+    x = "Publication year", 
+    y = "Number of studies")
+```
+
+
+**Publication type:** Some `r round((type_art/num_art)*100, digits = 0)`% of articles in the map database are traditional research papers, with only `r type_thes` theses, `r type_conf` conference papers, and `r type_rep` report. This may in some degree reflect the ease with which traditional research articles can be discovered, but may also be the result of the complex and expensive GHG measurement equipment needed for this type of research: it may be unlikely that unpublished reports would be conducted on a local or organisation scale.
+
+**Country:** The choropleth in Figure \@ref(fig:choroplot) displays the number of studies per country in the map. Some `r length(above10pccountries)` countries each represented more than 10% of the total studies in the evidence base: `r paste0(paste(above10pccountries[1:length(above10pccountries)-1], collapse = ', '), ', and ', above10pccountries[length(above10pccountries)])`. Much of the evidence came from Europe (a total of 227 studies).
+
+
+```{r chroplot, echo=FALSE, out.width='100%', fig.cap="Choropleth showing the number of studies per country in the systematic map database."}
+knitr::include_graphics('./choropleth.png')
+```
+
+**Climate zone:** Table \@ref(tab:climtab) displays the distribution of studies across climate zones. The most frequently studied climate zone was `r climtop[1]` with `r climtop[2]` studies. `r climtwo[1]` was the second most studied zone with `r climtwo[2]` studies. Some `r climno` studies could not be located to a climate zone.
+
+``` {r climtab, echo=FALSE}
+knitr::kable(clim_summary, caption = "Number of studies conducted in each eligible Köppen-Geiger climate zone. n indicates the number of studies.")
+```
+
+**Soil texture:** The most frequently reported soil texture information was from the [USDA Natural resources conservation service soil texture classification system](https://www.nrcs.usda.gov/wps/portal/nrcs/main/soils/survey/class/). Figure \@ref(tab:soiltextplot) shows the distribution of soil texture classifications across the evidence base. A large number of studies (`r soilnr` of `r num_stud`) did not report the soil texture classification. Table \@ref(tab:soilothertab) displays the soil texture data reported for studies not reporting soil texture classification, showing that `r soilnr_summary[1,3]` studies provided no data from any of the three soil classification systems, hampering synthesis of these data.
+
+``` {r soiltextplot, echo=FALSE, fig.cap="Soil texture classifications of studies in the systematic map"}
+ggplot2::ggplot(data = data, 
+                           ggplot2::aes(x = soilorder)) +
+  ggplot2::geom_bar(color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::theme_minimal() +
+  ggplot2::scale_x_discrete(limits = rev(levels(data$soilorder))) +
+  ggplot2::coord_flip() + 
+  ggplot2::labs(
+    x = "Soil texture classification", 
+    y = "Number of studies")
+```
+
+``` {r soilothertab, echo=FALSE}
+knitr::kable(soilnr_summary, caption = "Soil classifications of studies not using the USDA Natural Resources Conservation Service soil texture classification system. Blank cells indicate no data. n indicates the number of studies.")
+```
+
+**Field history description:** Just over half of the studies in the systematic map (`r fhist_yes` of `r num_stud`) provided a description of the previous management practices used within the experimental fields. 
+
+**Study length:** 
+
+
+**Season (for studies <1 year):**
+
+
+**Study design:**
+
+
+**Experimental design:**
+
+
+**Spatial replication:**
+
+
+**Temporal replication:**
+
