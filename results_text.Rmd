@@ -108,7 +108,7 @@ ggplot2::ggplot(data = articledat,
 **Country:** The choropleth in Figure \@ref(fig:choroplot) displays the number of studies per country in the map. Some `r length(above10pccountries)` countries each represented more than 10% of the total studies in the evidence base: `r paste0(paste(above10pccountries[1:length(above10pccountries)-1], collapse = ', '), ', and ', above10pccountries[length(above10pccountries)])`. Much of the evidence came from Europe (a total of 227 studies).
 
 
-```{r chroplot, echo=FALSE, out.width='100%', fig.cap="Choropleth showing the number of studies per country in the systematic map database."}
+```{r choroplot, echo=FALSE, out.width='100%', fig.cap="Choropleth showing the number of studies per country in the systematic map database."}
 knitr::include_graphics('./choropleth.png')
 ```
 
@@ -118,7 +118,7 @@ knitr::include_graphics('./choropleth.png')
 knitr::kable(clim_summary, caption = "Number of studies conducted in each eligible Köppen-Geiger climate zone. n indicates the number of studies.")
 ```
 
-**Soil texture:** The most frequently reported soil texture information was from the [USDA Natural resources conservation service soil texture classification system](https://www.nrcs.usda.gov/wps/portal/nrcs/main/soils/survey/class/). Figure \@ref(tab:soiltextplot) shows the distribution of soil texture classifications across the evidence base. A large number of studies (`r soilnr` of `r num_stud`) did not report the soil texture classification. Table \@ref(tab:soilothertab) displays the soil texture data reported for studies not reporting soil texture classification, showing that `r soilnr_summary[1,3]` studies provided no data from any of the three soil classification systems, hampering synthesis of these data.
+**Soil texture:** The most frequently reported soil texture information was from the [USDA Natural resources conservation service soil texture classification system](https://www.nrcs.usda.gov/wps/portal/nrcs/main/soils/survey/class/). Figure \@ref(fig:soiltextplot) shows the distribution of soil texture classifications across the evidence base. A large number of studies (`r soilnr` of `r num_stud`) did not report the soil texture classification. Table \@ref(tab:soilothertab) displays the soil texture data reported for studies not reporting soil texture classification, showing that `r soilnr_summary[1,3]` studies provided no data from any of the three soil classification systems, hampering synthesis of these data.
 
 ``` {r soiltextplot, echo=FALSE, fig.cap="Soil texture classifications of studies in the systematic map"}
 ggplot2::ggplot(data = data, 
