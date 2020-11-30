@@ -170,6 +170,18 @@ transpop_sum <- data %>%
   dplyr::count(transp_opaque, sort = TRUE)
 transparent <- expss::vlookup('Transparent', transpop_sum, 'n')
 opaque <- expss::vlookup('Opaque', transpop_sum, 'n')
+
+#' Heat maps
+alloutintdata <- intervdata %>%
+  tidyr::separate_rows(.,
+                       outcome,
+                       sep = ', ') #within separated intervention data, also separate outcomes
+summdat <- alloutintdata %>% 
+  dplyr::count(all_interv, 
+               country, 
+               outcome) #summarise all interventions and outcomes
+summdat <- summdat[Reduce(`&`, lapply(summdat, function(x) !(is.na(x)|x==""))),] #remove blank values
+summdat$country <- factor(summdat$country, levels=c("Kenya", "China", "Japan", "South Korea", "Belgium", "Croatia", "France", "Germany", "Greece", "Ireland", "Italy", "Netherlands", "Portugal", "Spain", "Turkey", "United Kingdom", "Israel", "Canada", "USA", "Australia", "New Zealand", "Argentina", "Brazil", "Chile"))
 ```
 
 # Results {-}
@@ -406,4 +418,21 @@ Open chambers were used in `r open` studies, whilst closed were used in `r close
 
 ### Heat maps {-}
 
+In Figure 
+
+``` {r bubbleplot, echo=FALSE, fig.cap="Bubble plot of intervention type against study country and measured outcome for studies in the systematic map. n indicates the number of studies.", fig.dim = c(12, 10)}
+source('bubbleplot.R')
+bubbleplot(x_var = summdat$all_interv, 
+           y_var = summdat$country, 
+          clr_var = summdat$outcome,
+          clr_legend = 'Outcome',
+          n = summdat$n,
+          bg_col = '#F1EFF3',
+          x_title = 'Invervention type',
+          y_title = 'Countries',
+          palette = 'Set2',
+          size_from = 0.1,
+          size_to = 6,
+          interactive = FALSE)
+```
 
