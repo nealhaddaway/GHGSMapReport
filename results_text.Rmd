@@ -53,7 +53,6 @@ climno <- subset(clim_summary, clim_summary$KPG_zone == '')[2]
 data$soil_text_class <- trimws(data$soil_text_class)
 data$soil_text_class <- gsub('Clayloam', 'Clay loam', data$soil_text_class)
 data$soil_text_class <- gsub('NR', 'Not reported', data$soil_text_class)
-#data$soil_text_class <- gsub('Unclear', 'Unclear', data$soil_text_class) 
 data$soil_text_class[!nzchar(data$soil_text_class)] <- "Not reported"
 data$soilorder <- factor(data$soil_text_class, levels=c("Clay", "Clay loam", "Loam", "Loamy sand", "Sand", "Sandy clay",  "Sandy clay loam", "Sandy loam", "Silt", "Silt loam", "Silty clay", "Silty clay loam", "Unclear", "Not reported"))
 soil_summary <- data %>% 
@@ -89,13 +88,13 @@ stdes_summary <- data %>%
   dplyr::count(study_design, sort = TRUE)
 
 #' Experimental design
-expdes_summary <- data %>% 
-  dplyr::count(experimental_design, sort = TRUE)
 data$experimental_design <- gsub('NR', 'Not reported', data$experimental_design)
 data$experimental_design <- gsub('Randomized', 'Randomised', data$experimental_design)
 data$experimental_design <- gsub('Randomised Complete Block', 'Randomised complete block', data$experimental_design)
 data$experimental_design[!nzchar(data$experimental_design)] <- "Not reported"
-data$expdesorder <- factor(data$experimental_design, levels=c("Purposive", "Paired design", "Split/strip plot", "Latin square", "Randomised", "Randomised complete block", "Unclear", "Not reported"))
+data$experimental_design <- factor(data$experimental_design, levels=c("Purposive", "Paired design", "Split/strip plot", "Latin square", "Randomised", "Randomised complete block", "Unclear", "Not reported"))
+expdes_summary <- data %>% 
+  dplyr::count(experimental_design, sort = TRUE)
 expdes_nr <- expss::vlookup('Not reported', expdes_summary, 'n')
 expdes_uncl <- expss::vlookup('Unclear', expdes_summary, 'n')
 
@@ -281,12 +280,11 @@ ggplot2::ggplot(data = below12months,
 
 ``` {r expdesplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Experimental designs employed across studies in the systematic map."}
 ggplot2::ggplot(data = data, 
-                           ggplot2::aes(x = expdesorder)) +
+                           ggplot2::aes(x = experimental_design)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
                     fill = '#8CB3B0') + 
   ggplot2::theme_minimal() +
-  ggplot2::scale_x_discrete(limits = rev(levels(data$expdesorder))) +
   ggplot2::coord_flip() + 
   ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
                       ggplot2::aes(label = ..count..), 
@@ -295,6 +293,7 @@ ggplot2::ggplot(data = data,
     x = "Experimental design", 
     y = "Number of studies")
 ```
+
 **Spatial replication:** Figure \@ref(fig:spatrepplot) shows the range of spatial replication across all studies. This demonstrates an overall very low level of true replication (no study used greater than `r max(na.omit(data$sp_rep))` spatial replicates): this is likely hindered by challenges in replicating field- or farm- scale experiments. The median level of true spatial replication was `r median(na.omit(data$sp_rep))` replicates. 
 
 ``` {r spatrepplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Study spatial replication (replicates per treatment group) across included studies in the map."}
