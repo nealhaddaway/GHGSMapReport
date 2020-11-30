@@ -2,13 +2,10 @@
 output:
   bookdown::pdf_document2: default
 toc: false
-fontsize: 11pt
-editor_options: 
+fontsize: 12pt
+editor_options:
   chunk_output_type: inline
-header-includes:
-  \usepackage{float}
-  \floatplacement{figure}{H}
-  \floatplacement{table}{H}
+header-includes: \usepackage{float} \floatplacement{figure}{H} \floatplacement{table}{H}
 ---
 
 ```{r setup, include=FALSE}
@@ -67,12 +64,113 @@ soilnr_summary <- soilnrdat %>%
   dplyr::count(USDA_soil_class, FAO_soil_class, sort = TRUE) %>%
   dplyr::rename('USDA soil classification' = USDA_soil_class, 'FAO soil classification' = FAO_soil_class)
 
-
 #' Field history
 data$field_hist_descr <- trimws(data$field_hist_descr)
 fhist_summary <- data %>% 
   dplyr::count(field_hist_descr, sort = TRUE)
 fhist_yes <- expss::vlookup('Yes', fhist_summary, 'n')
+
+#' Study length
+stlength_summary <- data %>% 
+  dplyr::count(total_months, sort = TRUE)
+stlength_nr <- expss::vlookup('NR', stlength_summary, 'n')
+stlength_unclear <- expss::vlookup('Unclear', stlength_summary, 'n')
+stlength_no <- expss::vlookup('', stlength_summary, 'n')
+
+below12months <- subset(data, as.numeric(total_months) < 12)
+below12months_summary <- below12months %>% 
+  dplyr::count(total_months, sort = TRUE)
+
+#' Study design
+data$study_design <- gsub('NR', 'Not reported', data$study_design)
+data$study_design <- gsub('CI', 'Control-impacts', data$study_design)
+data$study_design <- gsub('BA', 'Before-after', data$study_design)
+stdes_summary <- data %>% 
+  dplyr::count(study_design, sort = TRUE)
+
+#' Experimental design
+expdes_summary <- data %>% 
+  dplyr::count(experimental_design, sort = TRUE)
+data$experimental_design <- gsub('NR', 'Not reported', data$experimental_design)
+data$experimental_design <- gsub('Randomized', 'Randomised', data$experimental_design)
+data$experimental_design <- gsub('Randomised Complete Block', 'Randomised complete block', data$experimental_design)
+data$experimental_design[!nzchar(data$experimental_design)] <- "Not reported"
+data$expdesorder <- factor(data$experimental_design, levels=c("Purposive", "Paired design", "Split/strip plot", "Latin square", "Randomised", "Randomised complete block", "Unclear", "Not reported"))
+expdes_nr <- expss::vlookup('Not reported', expdes_summary, 'n')
+expdes_uncl <- expss::vlookup('Unclear', expdes_summary, 'n')
+
+#' Spatial replication
+data$spatial_replic <- gsub('2 per treatment for treatments of A controlled-release fertilizer made from calcium nitrate coated in polyolefin resin, and Calcium nitrate. No replication for treatments of A controlled-release fertilizer made from Urea coated with polyolefin resin, and No nitrogen.', '2', data$spatial_replic)
+data$sp_rep <- as.numeric(tidyr::extract_numeric(data$spatial_replic))
+sp_rep_dat <- data %>% 
+  dplyr::count(sp_rep, sort = TRUE)
+
+#' Temporal replication
+data$temporal_replic[!nzchar(data$temporal_replic)] <- "Not reported"
+temp_rep_dat <- data %>% 
+  dplyr::count(temporal_replic, sort = TRUE) %>%
+  dplyr::rename('Temporal replication' = temporal_replic)
+temprep_no <- expss::vlookup('No', temp_rep_dat, 'n')
+temprep_yes <- expss::vlookup('Yes', temp_rep_dat, 'n')
+temprep_nr <- expss::vlookup('Not reported', temp_rep_dat, 'n')
+
+#' Interventions
+data$interv_type <- gsub('fertilizer', 'fertiliser', data$interv_type)
+data$multiple_interv_codes <- gsub('fertilizer', 'fertiliser', data$multiple_interv_codes)
+data$interv_type <- gsub('Multiple-intervention', 'Multiple interventions', data$interv_type)
+intervention_dat <- data %>% 
+  dplyr::count(interv_type, sort = TRUE)
+interv_mult <- expss::vlookup('Multiple interventions', intervention_dat, 'n')
+intervdata <- data %>%
+  tidyr::separate_rows(.,
+                       multiple_interv_codes,
+                       sep = ', ')
+intervdata$all_interv <- gsub('Multiple interventions', '', paste0(intervdata$interv_type, intervdata$multiple_interv_codes))
+intervdata$all_interv <- stringr::str_to_sentence(tolower(intervdata$all_interv))
+allintervention_dat <- intervdata %>% 
+  dplyr::count(all_interv, sort = TRUE)
+
+#' Outcomes
+data$outcome <- gsub('CH4, N2O, CO2', 'CH4, CO2, N2O', data$outcome)
+data$outcome <- gsub('N2O, CO2', 'CO2, N2O', data$outcome)
+data$outcome <- gsub('N2O, CO2, CH4', 'CH4, CO2, N2O', data$outcome)
+data$outcome <- gsub('CO2, N2O, CH4', 'CH4, CO2, N2O', data$outcome)
+outcomes_sumdat <- data %>% 
+  dplyr::count(outcome, sort = TRUE) %>%
+  dplyr::rename('Outcome' = outcome)
+multoutcometab <- subset(outcomes_sumdat, nchar(Outcome) > 3)
+multoutcometab$Outcome <- gsub('N2O', 'N~2~O', multoutcometab$Outcome)
+multoutcometab$Outcome <- gsub('CO2', 'CO~2~', multoutcometab$Outcome)
+multoutcometab$Outcome <- gsub('CH4', 'CH~4~', multoutcometab$Outcome)
+alloutcomes <- expss::vlookup('CH~4~, CO~2~, N~2~O', multoutcometab, 'n')
+data$outcome <- gsub('NO2', 'N2O', data$outcome)
+data$outcome[!nzchar(data$outcome)] <- "Not reported"
+outcomesdata <- data %>%
+  tidyr::separate_rows(.,
+                       outcome,
+                       sep = ', ')
+outcomesdata$outcome <- gsub('N2O', 'N~2~O', outcomesdata$outcome)
+outcomesdata$outcome <- gsub('CO2', 'CO~2~', outcomesdata$outcome)
+outcomesdata$outcome <- gsub('CH4', 'CH~4~', outcomesdata$outcome)
+outcomes_summary <- outcomesdata %>% 
+  dplyr::count(outcome, sort = TRUE) %>%
+  dplyr::rename('Outcome' = outcome)
+
+#' Outcome measurement
+data$sampling_equip[!nzchar(data$sampling_equip)] <- "Not reported"
+ocmeas_summary <- data %>% 
+  dplyr::count(sampling_equip, sort = TRUE)
+data$sampling_equip <- factor(data$sampling_equip, levels=c(ocmeas_summary[,1]))
+ocmeas_nr <- expss::vlookup('Not reported', ocmeas_summary, 'n')
+topocmeas <- if (ocmeas_summary[1,1] == 'Not reported'){ocmeas_summary[2,]} else {ocmeas_summary[1,]}
+opcl_sum <- data %>% 
+  dplyr::count(open_closed, sort = TRUE)
+open <- expss::vlookup('Open', opcl_sum, 'n')
+closed <- expss::vlookup('Closed', opcl_sum, 'n')
+transpop_sum <- data %>% 
+  dplyr::count(transp_opaque, sort = TRUE)
+transparent <- expss::vlookup('Transparent', transpop_sum, 'n')
+opaque <- expss::vlookup('Opaque', transpop_sum, 'n')
 ```
 
 # Results {-}
@@ -83,13 +181,12 @@ Details of the number of records retained through each stage of the review proce
 plot(mtcars)
 ```
 
-
 ## The systematic map database and visualisations {-}
 ### Descriptive information {-}
 
 **Publication year:** As expected, there has been a significant increase in the number of published articles on the topic over the last 20 years (Figure \@ref(fig:yearplot)). Interestingly, there may be evidence of a reduction in publication rate over the most recent 5 years from 2014 to 2018. The earliest record in our database is from 1981. Since searches were performed in 2019, representation from this year is incomplete.
 
-```{r yearplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Plot showing the final number of articles included in the systematic map by publication year.", fig.width=10, fig.height=5}
+```{r yearplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Plot showing the final number of articles included in the systematic map by publication year."}
 ggplot2::ggplot(data = articledat, 
                            ggplot2::aes(x = as.numeric(year))) +
   ggplot2::geom_bar(stat = "bin", 
@@ -104,7 +201,8 @@ ggplot2::ggplot(data = articledat,
 
 
 **Publication type:** Some `r round((type_art/num_art)*100, digits = 0)`% of articles in the map database are traditional research papers, with only `r type_thes` theses, `r type_conf` conference papers, and `r type_rep` report. This may in some degree reflect the ease with which traditional research articles can be discovered, but may also be the result of the complex and expensive GHG measurement equipment needed for this type of research: it may be unlikely that unpublished reports would be conducted on a local or organisation scale.
-
+\newline 
+\newline 
 **Country:** The choropleth in Figure \@ref(fig:choroplot) displays the number of studies per country in the map. Some `r length(above10pccountries)` countries each represented more than 10% of the total studies in the evidence base: `r paste0(paste(above10pccountries[1:length(above10pccountries)-1], collapse = ', '), ', and ', above10pccountries[length(above10pccountries)])`. Much of the evidence came from Europe (a total of 227 studies).
 
 
@@ -123,10 +221,14 @@ knitr::kable(clim_summary, caption = "Number of studies conducted in each eligib
 ``` {r soiltextplot, echo=FALSE, fig.cap="Soil texture classifications of studies in the systematic map"}
 ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = soilorder)) +
-  ggplot2::geom_bar(color = 'White', 
+  ggplot2::geom_bar(stat = "count",
+                    color = 'White', 
                     fill = '#8CB3B0') + 
   ggplot2::theme_minimal() +
   ggplot2::scale_x_discrete(limits = rev(levels(data$soilorder))) +
+  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                      ggplot2::aes(label = ..count..), 
+                      position = ggplot2::position_nudge(y = 3)) +
   ggplot2::coord_flip() + 
   ggplot2::labs(
     x = "Soil texture classification", 
@@ -138,21 +240,171 @@ knitr::kable(soilnr_summary, caption = "Soil classifications of studies not usin
 ```
 
 **Field history description:** Just over half of the studies in the systematic map (`r fhist_yes` of `r num_stud`) provided a description of the previous management practices used within the experimental fields. 
+\newline 
+\newline 
+**Study length:** The duration of investigation was reported in `r length(na.omit(as.numeric(data$total_months)))` of `r num_stud` studies. Figure \@ref(fig:studylength) shows the range of study durations used across the included studies. Median study length was `r median(na.omit(as.numeric(data$total_months)))` months.
 
-**Study length:** 
+``` {r studylength, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Study durations employed across the evidence base, collated into 6 month bins."}
+ggplot2::ggplot(data = data, 
+                           ggplot2::aes(x = (as.numeric(total_months))/12)) +
+  ggplot2::geom_bar(stat = "bin", 
+                    binwidth = .25,
+                    color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::theme_minimal() +
+  ggplot2::labs(
+    x = "Study length in years", 
+    y = "Number of studies")
+```
+
+**Season (for studies <1 year):** For studies lasting less than 1 year (n = `r nrow(below12months)`), the median study length was `r median(as.numeric(below12months$total_months))` months (see Figure \@ref(fig:studylength2)).
+
+``` {r studylength2, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Study durations for investigations less than 1 year in length."}
+ggplot2::ggplot(data = below12months, 
+                           ggplot2::aes(x = as.numeric(total_months))) +
+  ggplot2::geom_bar(stat = "count",
+                    color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                      ggplot2::aes(label = ..count..), 
+                      position = ggplot2::position_nudge(y = 1)) +
+  ggplot2::theme_minimal() +
+  ggplot2::labs(
+    x = "Study length in months", 
+    y = "Number of studies")
+```
+
+**Study design:** The most frequently employed study design across the evidence base was `r tolower(stdes_summary[1,1])` (n = `r stdes_summary[1,2]` studies). `r stdes_summary[2,1]` was much less common (n = `r stdes_summary[2,2]`). Study design was not reported in `r if(stdes_summary[3,2]>1){paste(stdes_summary[3,2], 'studies')} else {paste(stdes_summary[3,2], 'study')}`.
+\newline 
+\newline 
+**Experimental design:** The most commonly used experimental design in the included studies was '`r expdes_summary[1,1]`', with `r expdes_summary[1,2]` studies, with '`r expdes_summary[2,1]`' the next most frequent (n = `r expdes_summary[2,2]`). Figure \@ref(fig:expdesplot) displays the frequency of all experimental designs. The experimental design was not reported or unclear in `r expdes_nr` and `r expdes_uncl` studies, respectively.
+
+``` {r expdesplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Experimental designs employed across studies in the systematic map."}
+ggplot2::ggplot(data = data, 
+                           ggplot2::aes(x = expdesorder)) +
+  ggplot2::geom_bar(stat = "count",
+                    color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::theme_minimal() +
+  ggplot2::scale_x_discrete(limits = rev(levels(data$expdesorder))) +
+  ggplot2::coord_flip() + 
+  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                      ggplot2::aes(label = ..count..), 
+                      position = ggplot2::position_nudge(y = 10)) +
+  ggplot2::labs(
+    x = "Experimental design", 
+    y = "Number of studies")
+```
+**Spatial replication:** Figure \@ref(fig:spatrepplot) shows the range of spatial replication across all studies. This demonstrates an overall very low level of true replication (no study used greater than `r max(na.omit(data$sp_rep))` spatial replicates): this is likely hindered by challenges in replicating field- or farm- scale experiments. The median level of true spatial replication was `r median(na.omit(data$sp_rep))` replicates. 
+
+``` {r spatrepplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Study spatial replication (replicates per treatment group) across included studies in the map."}
+ggplot2::ggplot(data = data, 
+                           ggplot2::aes(x = sp_rep)) +
+  ggplot2::geom_bar(stat = "count",
+                    color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                      ggplot2::aes(label = ..count..), 
+                      position = ggplot2::position_nudge(y = 5)) +
+  ggplot2::theme_minimal() +
+  ggplot2::labs(
+    x = "Spatial replication (replicates per group)", 
+    y = "Number of studies")
+```
+
+**Temporal replication:** Most studies in the map did not take measurements at more than one time point (n = `r temprep_no`): `r temprep_yes` studies did employ temporal replication, and `r temprep_nr` studies did not report this information.
+\newline 
+\newline 
+**Interventions:** Figure \@ref(fig:intervplot) shows the types of interventions investigated in the evidence base. A total of `r interv_mult` out of `r num_stud` studies examined multiple interventions together. The top three most frequently studied single intervention types were `r tolower(intervention_dat[2,1])` (n = `r intervention_dat[2,2]`), `r tolower(intervention_dat[3,1])` (n = `r intervention_dat[3,2]`), and `r tolower(intervention_dat[4,1])` (n = `r intervention_dat[4,2]`). Across all intervention types, the top three most frequently studied were: 1) `r tolower(allintervention_dat[1,1])` (n = `r allintervention_dat[1,2]`); 2) `r tolower(allintervention_dat[2,1])` (n = `r allintervention_dat[2,2]`); 3) `r tolower(allintervention_dat[3,1])` (n = `r allintervention_dat[3,2]`); 4) `r tolower(allintervention_dat[4,1])` (n = `r allintervention_dat[4,2]`); and, 5) `r tolower(allintervention_dat[5,1])` (n = `r allintervention_dat[5,2]`). 
+
+``` {r intervplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Intervention types investigated in the studies within the systematic map: a) the number of studies investigating each type of intervention, and b) the number of intervention types investigated across studies.", fig.show="hold", out.width="50%"}
+par(mfrow=c(2,1))
+ggplot2::ggplot(data = data, 
+                           ggplot2::aes(x = interv_type)) +
+  ggplot2::geom_bar(stat = "count",
+                    color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::theme_minimal() +
+  ggplot2::scale_x_discrete(limits = rev(levels(data$interv_type))) +
+  ggplot2::coord_flip() + 
+  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                      ggplot2::aes(label = ..count..), 
+                      position = ggplot2::position_nudge(y = 10)) +
+  ggplot2::labs(
+    title = "a) Study-level",
+    x = "Type of intervention(s) studied", 
+    y = "Number of studies")
+ggplot2::ggplot(data = intervdata, 
+                           ggplot2::aes(x = all_interv)) +
+  ggplot2::geom_bar(stat = "count",
+                    color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::theme_minimal() +
+  ggplot2::scale_x_discrete(limits = rev(levels(intervdata$all_interv))) +
+  ggplot2::coord_flip() + 
+  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                      ggplot2::aes(label = ..count..), 
+                      position = ggplot2::position_nudge(y = 10)) +
+  ggplot2::labs(
+    title = "b) Intervention-level",
+    x = "Type of intervention(s) studied", 
+    y = "Number of studies")
+```
+
+**Treatments:** Within intervention types, studies often investigated multiple treatment levels/types (see Figure \@ref(fig:treatplot)). The median number of treatments was `r median(na.omit(data$treatments))`.
+
+``` {r treatplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Number of treatments investigated in studies included in the systematic map"}
+ggplot2::ggplot(data = data, 
+                           ggplot2::aes(x = treatments)) +
+  ggplot2::geom_bar(color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                      ggplot2::aes(label = ..count..), 
+                      position = ggplot2::position_nudge(y = 3)) +
+  ggplot2::theme_minimal() +
+  ggplot2::scale_x_continuous(breaks = c(0, 25, 50, 75, 100, 125)) +
+  ggplot2::labs(
+    x = "Number of treatments per study", 
+    y = "Number of studies")
+```
+
+**Outcomes:** Tables \@ref(tab:outcometab1) and \@ref(tab:outcometab2) show the measured outcomes across all studies in the map, across outcomes and where outcomes were measured together, respectively. All three outcomes were reported in `r alloutcomes` studies. The next most commonly co-measured outcomes were `r paste(unlist(stringr::str_split(multoutcometab[2,1], ', ')), collapse = ' and ')` (n = `r multoutcometab[2,2]`) and `r paste(unlist(stringr::str_split(multoutcometab[3,1], ', ')), collapse = ' and ')` (n = `r multoutcometab[3,2]`).
+
+``` {r outcometab1, echo=FALSE}
+outcomes_summary$Outcome <- gsub('N~2~O', 'Nitrous oxide', outcomes_summary$Outcome)
+outcomes_summary$Outcome <- gsub('CO~2~', 'Carbon dioxide', outcomes_summary$Outcome)
+outcomes_summary$Outcome <- gsub('CH~4~', 'Methane', outcomes_summary$Outcome)
+knitr::kable(outcomes_summary, caption = "Outcomes measured across studies in the systematic map. n indicates the number of studies.") 
+```
+``` {r outcometab2, echo=FALSE}
+multoutcometab$Outcome <- gsub('N~2~O', 'Nitrous oxide', multoutcometab$Outcome)
+multoutcometab$Outcome <- gsub('CO~2~', 'Carbon dioxide', multoutcometab$Outcome)
+multoutcometab$Outcome <- gsub('CH~4~', 'Methane', multoutcometab$Outcome)
+df <- data.frame('Outcomes' = multoutcometab[,1], 'n' = multoutcometab[,2])
+knitr::kable(df, caption = "Outcomes measured together in studies measuring multiple outcomes in the systematic map. n indicates the number of studies.")
+```
+
+**Outcome measurement methods:** The most commonly reported measurement method was '`r tolower(topocmeas[,1])`' (n = `r topocmeas[,2]`) (see Figure \@ref(fig:ocmeasplot)). A substantial proportion of studies (n = `r ocmeas_nr`) did not report the outcome sampling methods used. 
+
+``` {r ocmeasplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Experimental designs employed across studies in the systematic map."}
+ggplot2::ggplot(data = data, 
+                           ggplot2::aes(x = sampling_equip)) +
+  ggplot2::geom_bar(color = 'White', 
+                    fill = '#8CB3B0') + 
+  ggplot2::theme_minimal() +
+  ggplot2::coord_flip() + 
+  ggplot2::scale_x_discrete(limits = rev(levels(data$sampling_equip))) +
+  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                      ggplot2::aes(label = ..count..), 
+                      position = ggplot2::position_nudge(y = 10)) +
+  ggplot2::labs(
+    x = "Outcome sampling equipment", 
+    y = "Number of studies")
+```
+
+Open chambers were used in `r open` studies, whilst closed were used in `r closed` (it was not possible to ascertain this information for the remaining studies). Opaque chambers were used in `r opaque` studies, whilst transparent were used in `r transparent` (it was not possible to ascertain this information for the remaining studies). 
 
 
-**Season (for studies <1 year):**
+### Heat maps {-}
 
-
-**Study design:**
-
-
-**Experimental design:**
-
-
-**Spatial replication:**
-
-
-**Temporal replication:**
 
