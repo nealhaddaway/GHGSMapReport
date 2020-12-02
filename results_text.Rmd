@@ -268,7 +268,7 @@ ggplot2::ggplot(data = data,
     y = "Number of studies")
 ```
 
-**Season (for studies <1 year):** For studies lasting less than 1 year (n = `r nrow(below12months)`), the median study length was `r median(as.numeric(below12months$total_months))` months (see Figure \@ref(fig:studylength2)).
+For studies lasting less than 1 year (n = `r nrow(below12months)`), the median study length was `r median(as.numeric(below12months$total_months))` months (see Figure \@ref(fig:studylength2)).
 
 ``` {r studylength2, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Study durations for investigations less than 1 year in length."}
 ggplot2::ggplot(data = below12months, 
@@ -394,6 +394,26 @@ multoutcometab$Outcome <- gsub('CH~4~', 'Methane', multoutcometab$Outcome)
 df <- data.frame('Outcomes' = multoutcometab[,1], 'n' = multoutcometab[,2])
 knitr::kable(df, caption = "Outcomes measured together in studies measuring multiple outcomes in the systematic map. n indicates the number of studies.")
 ```
+
+Figure \@ref(fig:outcomeyear) shows the distribution of measured outcomes across time (the final study measurement year), showing the consistent interest in nitrous oxide. These patterns suggestgive no indication of a change in attention to specific GHGs over time.
+
+``` {r outcomeyear, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Measured outcomes across all studies by the final study measurement year."}
+outcomesdata$outcome <- gsub('N~2~O', 'Nitrous oxide', outcomesdata$outcome)
+outcomesdata$outcome <- gsub('CO~2~', 'Carbon dioxide', outcomesdata$outcome)
+outcomesdata$outcome <- gsub('CH~4~', 'Methane', outcomesdata$outcome)
+outcomeyear <- data.frame(last_meas_year = as.numeric(outcomesdata$last_meas_year), outcome = outcomesdata$outcome)
+outcomeyear <- na.omit(outcomeyear)
+ggplot2::ggplot(data = outcomeyear, 
+                           ggplot2::aes(x = last_meas_year, fill = outcome)) +
+  ggplot2::geom_bar(stat="count", color = 'White') + 
+  ggplot2::scale_fill_manual(values = c("#EAC4D5", "#8CB3B0", "#5B5F97", "#DBB957")) +
+  ggplot2::scale_x_continuous(breaks = seq(floor(min(outcomeyear$last_meas_year)/10)*10, ceiling(max(outcomeyear$last_meas_year)/10)*10, 5)) +
+  ggplot2::theme_minimal() +
+  ggplot2::labs(
+    x = "Final measurement year", 
+    y = "Number of studies")
+```
+
 
 **Outcome measurement methods:** The most commonly reported measurement method was '`r tolower(topocmeas[,1])`' (n = `r topocmeas[,2]`) (see Figure \@ref(fig:ocmeasplot)). A substantial proportion of studies (n = `r ocmeas_nr`) did not report the outcome sampling methods used. 
 
