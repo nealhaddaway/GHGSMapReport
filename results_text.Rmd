@@ -1,6 +1,7 @@
 ---
 output:
   bookdown::pdf_document2: default
+always_allow_html: true
 toc: false
 fontsize: 12pt
 editor_options:
@@ -188,8 +189,29 @@ summdat$country <- factor(summdat$country, levels=c("Kenya", "China", "Japan", "
 ## The systematic mapping process {-}
 Details of the number of records retained through each stage of the review process are provided in Figure \@ref(fig:flowchart). A total of xxx potentially relevant records were identified across the xxx resources searched. A total of xxx unique records was screened for eligibility, with xxx eligible records following full text screening. The final systematic map database contains `r num_stud` studies from `r num_art` articles.
 
-```{r flowchart, fig.cap="ROSES flow chart for the systematic map, showing the number of records retained at each stage of the review process. Produced using the ROSES Flow Chart App (Haddaway 2020).", echo=FALSE}
-plot(mtcars)
+```{r flowchart, fig.cap="ROSES flow chart for the systematic map, showing the number of records retained at each stage of the review process. Produced using the R package 'ROSES_flowchart' (Haddaway 2020).", echo=FALSE}
+source('ROSES_flowchart.R')
+flowchart <- ROSES_flowchart(dbresults = 'xxx',
+                otherresults = 'xxx',
+                deduped = 'xxx',
+                dupesremoved = 'xxx',
+                tandaincl = 'xxx',
+                tandaexcl = 'xxx',
+                titleincl = 'xxx',
+                titleexcl = 'xxx',
+                abstractincl = 'xxx',
+                abstractexcl = 'xxx',
+                ftretr = 'xxx',
+                ftnotretr <- data.frame(reason = c('Not accessible', 'Not found'), n = c('xxx', 'xxx')),
+                ftincl = 'xxx',
+                ftexcl <- data.frame(reason = c('Population', 'Intervention', 'Comparator', 'Outcome', 'Study design'), n = c('xxx', 'xxx', 'xxx', 'xxx', 'xxx')),
+                prescreened = 'xxx',
+                studart <- c('xxx', 'xxx'),
+                finalmapincl = 'xxx',
+                type = 'map')
+rsvg::rsvg_pdf(svg = charToRaw(DiagrammeRsvg::export_svg(flowchart)),
+                   file = 'figures/figure1.pdf')
+flowchart
 ```
 
 ## The systematic map database and visualisations {-}
@@ -197,8 +219,8 @@ plot(mtcars)
 
 **Publication year:** As expected, there has been a significant increase in the number of published articles on the topic over the last 20 years (Figure \@ref(fig:yearplot)). Interestingly, there may be evidence of a reduction in publication rate over the most recent 5 years from 2014 to 2018. The earliest record in our database is from 1981. Since searches were performed in 2019, representation from this year is incomplete.
 
-```{r yearplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Plot showing the final number of articles included in the systematic map by publication year."}
-ggplot2::ggplot(data = articledat, 
+```{r yearplot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Plot showing the final number of articles included in the systematic map by publication year.", results = "hide", fig.keep = 'all'}
+yearplot <- ggplot2::ggplot(data = articledat, 
                            ggplot2::aes(x = as.numeric(year))) +
   ggplot2::geom_bar(stat = "bin", 
                     binwidth = 1, 
@@ -208,6 +230,10 @@ ggplot2::ggplot(data = articledat,
   ggplot2::labs(
     x = "Publication year", 
     y = "Number of studies")
+pdf(file = 'figures/figure 2.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  yearplot
+dev.off()
+yearplot
 ```
 
 
@@ -217,20 +243,20 @@ ggplot2::ggplot(data = articledat,
 **Country:** The choropleth in Figure \@ref(fig:choroplot) displays the number of studies per country in the map. Some `r length(above10pccountries)` countries each represented more than 10% of the total studies in the evidence base: `r paste0(paste(above10pccountries[1:length(above10pccountries)-1], collapse = ', '), ', and ', above10pccountries[length(above10pccountries)])`. Much of the evidence came from Europe (a total of 227 studies).
 
 
-```{r choroplot, echo=FALSE, out.width='100%', fig.cap="Choropleth showing the number of studies per country in the systematic map database."}
+```{r choroplot, echo=FALSE, out.width='100%', warning=FALSE, message=FALSE, fig.cap="Choropleth showing the number of studies per country in the systematic map database."}
 knitr::include_graphics('./choropleth.png')
 ```
 
 **Climate zone:** Table \@ref(tab:climtab) displays the distribution of studies across climate zones. The most frequently studied climate zone was `r climtop[1]` with `r climtop[2]` studies. `r climtwo[1]` was the second most studied zone with `r climtwo[2]` studies. Some `r climno` studies could not be located to a climate zone.
 
-``` {r climtab, echo=FALSE}
+``` {r climtab, warning=FALSE, messages=FALSE, echo=FALSE}
 knitr::kable(clim_summary, caption = "Number of studies conducted in each eligible Köppen-Geiger climate zone. n indicates the number of studies.")
 ```
 
 **Soil texture:** The most frequently reported soil texture information was from the [USDA Natural resources conservation service soil texture classification system](https://www.nrcs.usda.gov/wps/portal/nrcs/main/soils/survey/class/). Figure \@ref(fig:soiltextplot) shows the distribution of soil texture classifications across the evidence base. A large number of studies (`r soilnr` of `r num_stud`) did not report the soil texture classification. Table \@ref(tab:soilothertab) displays the soil texture data reported for studies not reporting soil texture classification, showing that `r soilnr_summary[1,3]` studies provided no data from any of the three soil classification systems, hampering synthesis of these data.
 
-``` {r soiltextplot, echo=FALSE, fig.cap="Soil texture classifications of studies in the systematic map"}
-ggplot2::ggplot(data = data, 
+``` {r soiltextplot, warning=FALSE, message=FALSE, echo=FALSE, fig.cap="Soil texture classifications of studies in the systematic map", results = "hide", fig.keep = 'all'}
+soiltextplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = soilorder)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
@@ -244,6 +270,10 @@ ggplot2::ggplot(data = data,
   ggplot2::labs(
     x = "Soil texture classification", 
     y = "Number of studies")
+pdf(file = 'figures/figure 4.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  soiltextplot
+dev.off()
+soiltextplot
 ```
 
 ``` {r soilothertab, echo=FALSE}
@@ -255,8 +285,8 @@ knitr::kable(soilnr_summary, caption = "Soil classifications of studies not usin
 \newline 
 **Study length:** The duration of investigation was reported in `r length(na.omit(as.numeric(data$total_months)))` of `r num_stud` studies. Figure \@ref(fig:studylength) shows the range of study durations used across the included studies. Median study length was `r median(na.omit(as.numeric(data$total_months)))` months.
 
-``` {r studylength, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Study durations employed across the evidence base, collated into 6 month bins."}
-ggplot2::ggplot(data = data, 
+``` {r studylength, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Study durations employed across the evidence base, collated into 6 month bins.", results = "hide", fig.keep = 'all'}
+studylength <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = (as.numeric(total_months))/12)) +
   ggplot2::geom_bar(stat = "bin", 
                     binwidth = .25,
@@ -266,12 +296,16 @@ ggplot2::ggplot(data = data,
   ggplot2::labs(
     x = "Study length in years", 
     y = "Number of studies")
+pdf(file = 'figures/figure 5.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  studylength
+dev.off()
+studylength
 ```
 
 For studies lasting less than 1 year (n = `r nrow(below12months)`), the median study length was `r median(as.numeric(below12months$total_months))` months (see Figure \@ref(fig:studylength2)).
 
-``` {r studylength2, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Study durations for investigations less than 1 year in length."}
-ggplot2::ggplot(data = below12months, 
+``` {r studylength2, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Study durations for investigations less than 1 year in length.", results = "hide", fig.keep = 'all'}
+studylength2 <- ggplot2::ggplot(data = below12months, 
                            ggplot2::aes(x = as.numeric(total_months))) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
@@ -283,6 +317,10 @@ ggplot2::ggplot(data = below12months,
   ggplot2::labs(
     x = "Study length in months", 
     y = "Number of studies")
+pdf(file = 'figures/figure 6.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  studylength2
+dev.off()
+studylength2
 ```
 
 **Study design:** The most frequently employed study design across the evidence base was `r tolower(stdes_summary[1,1])` (n = `r stdes_summary[1,2]` studies). `r stdes_summary[2,1]` was much less common (n = `r stdes_summary[2,2]`). Study design was not reported in `r if(stdes_summary[3,2]>1){paste(stdes_summary[3,2], 'studies')} else {paste(stdes_summary[3,2], 'study')}`.
@@ -290,8 +328,8 @@ ggplot2::ggplot(data = below12months,
 \newline 
 **Experimental design:** The most commonly used experimental design in the included studies was '`r expdes_summary[1,1]`', with `r expdes_summary[1,2]` studies, with '`r expdes_summary[2,1]`' the next most frequent (n = `r expdes_summary[2,2]`). Figure \@ref(fig:expdesplot) displays the frequency of all experimental designs. The experimental design was not reported or unclear in `r expdes_nr` and `r expdes_uncl` studies, respectively.
 
-``` {r expdesplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Experimental designs employed across studies in the systematic map."}
-ggplot2::ggplot(data = data, 
+``` {r expdesplot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Experimental designs employed across studies in the systematic map.", results = "hide", fig.keep = 'all'}
+expdesplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = experimental_design)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
@@ -304,12 +342,16 @@ ggplot2::ggplot(data = data,
   ggplot2::labs(
     x = "Experimental design", 
     y = "Number of studies")
+pdf(file = 'figures/figure 7.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  expdesplot
+dev.off()
+expdesplot
 ```
 
 **Spatial replication:** Figure \@ref(fig:spatrepplot) shows the range of spatial replication across all studies. This demonstrates an overall very low level of true replication (no study used greater than `r max(na.omit(data$sp_rep))` spatial replicates): this is likely hindered by challenges in replicating field- or farm- scale experiments. The median level of true spatial replication was `r median(na.omit(data$sp_rep))` replicates. 
 
-``` {r spatrepplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Study spatial replication (replicates per treatment group) across included studies in the map."}
-ggplot2::ggplot(data = data, 
+``` {r spatrepplot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Study spatial replication (replicates per treatment group) across included studies in the map.", results = "hide", fig.keep = 'all'}
+spatrepplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = sp_rep)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
@@ -321,6 +363,10 @@ ggplot2::ggplot(data = data,
   ggplot2::labs(
     x = "Spatial replication (replicates per group)", 
     y = "Number of studies")
+pdf(file = 'figures/figure 8.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  spatrepplot
+dev.off()
+spatrepplot
 ```
 
 **Temporal replication:** Most studies in the map did not take measurements at more than one time point (n = `r temprep_no`): `r temprep_yes` studies did employ temporal replication, and `r temprep_nr` studies did not report this information.
@@ -328,9 +374,9 @@ ggplot2::ggplot(data = data,
 \newline 
 **Interventions:** Figure \@ref(fig:intervplot) shows the types of interventions investigated in the evidence base. A total of `r interv_mult` out of `r num_stud` studies examined multiple interventions together. The top three most frequently studied single intervention types were `r tolower(intervention_dat[2,1])` (n = `r intervention_dat[2,2]`), `r tolower(intervention_dat[3,1])` (n = `r intervention_dat[3,2]`), and `r tolower(intervention_dat[4,1])` (n = `r intervention_dat[4,2]`). Across all intervention types, the top three most frequently studied were: 1) `r tolower(allintervention_dat[1,1])` (n = `r allintervention_dat[1,2]`); 2) `r tolower(allintervention_dat[2,1])` (n = `r allintervention_dat[2,2]`); 3) `r tolower(allintervention_dat[3,1])` (n = `r allintervention_dat[3,2]`); 4) `r tolower(allintervention_dat[4,1])` (n = `r allintervention_dat[4,2]`); and, 5) `r tolower(allintervention_dat[5,1])` (n = `r allintervention_dat[5,2]`). 
 
-``` {r intervplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Intervention types investigated in the studies within the systematic map: a) the number of studies investigating each type of intervention, and b) the number of intervention types investigated across studies.", fig.show="hold", out.width="50%"}
+``` {r intervplot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Intervention types investigated in the studies within the systematic map: a) the number of studies investigating each type of intervention, and b) the number of intervention types investigated across studies.", fig.show="hold", out.width="50%", results = "hide", fig.keep = 'all'}
 par(mfrow=c(2,1))
-ggplot2::ggplot(data = data, 
+intervplota <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = interv_type)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
@@ -345,7 +391,7 @@ ggplot2::ggplot(data = data,
     title = "a) Study-level",
     x = "Type of intervention(s) studied", 
     y = "Number of studies")
-ggplot2::ggplot(data = intervdata, 
+intervplotb <- ggplot2::ggplot(data = intervdata, 
                            ggplot2::aes(x = all_interv)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
@@ -360,23 +406,32 @@ ggplot2::ggplot(data = intervdata,
     title = "b) Intervention-level",
     x = "Type of intervention(s) studied", 
     y = "Number of studies")
+pdf(file = 'figures/figure 9a.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  intervplota
+dev.off()
+pdf(file = 'figures/figure 9b.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  intervplotb
+dev.off()
+intervplota
+intervplotb
 ```
 
 **Treatments:** Within intervention types, studies often investigated multiple treatment levels/types (see Figure \@ref(fig:treatplot)). The median number of treatments was `r median(na.omit(data$treatments))`.
 
-``` {r treatplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Number of treatments investigated in studies included in the systematic map"}
-ggplot2::ggplot(data = data, 
+``` {r treatplot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Number of treatments investigated in studies included in the systematic map", results = "hide", fig.keep = 'all'}
+treatplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = treatments)) +
   ggplot2::geom_bar(color = 'White', 
                     fill = '#8CB3B0') + 
-  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
-                      ggplot2::aes(label = ..count..), 
-                      position = ggplot2::position_nudge(y = 3)) +
   ggplot2::theme_minimal() +
   ggplot2::scale_x_continuous(breaks = c(0, 25, 50, 75, 100, 125)) +
   ggplot2::labs(
     x = "Number of treatments per study", 
     y = "Number of studies")
+pdf(file = 'figures/figure 10.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  treatplot
+dev.off()
+treatplot
 ```
 
 **Outcomes:** Tables \@ref(tab:outcometab1) and \@ref(tab:outcometab2) show the measured outcomes across all studies in the map, across outcomes and where outcomes were measured together, respectively. All three outcomes were reported in `r alloutcomes` studies. The next most commonly co-measured outcomes were `r paste(unlist(stringr::str_split(multoutcometab[2,1], ', ')), collapse = ' and ')` (n = `r multoutcometab[2,2]`) and `r paste(unlist(stringr::str_split(multoutcometab[3,1], ', ')), collapse = ' and ')` (n = `r multoutcometab[3,2]`).
@@ -397,13 +452,13 @@ knitr::kable(df, caption = "Outcomes measured together in studies measuring mult
 
 Figure \@ref(fig:outcomeyear) shows the distribution of measured outcomes across time (the final study measurement year), showing the consistent interest in nitrous oxide. These patterns suggestgive no indication of a change in attention to specific GHGs over time.
 
-``` {r outcomeyear, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Measured outcomes across all studies by the final study measurement year."}
+``` {r outcomeyear, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Measured outcomes across all studies by the final study measurement year.", results = "hide", fig.keep = 'all'}
 outcomesdata$outcome <- gsub('N~2~O', 'Nitrous oxide', outcomesdata$outcome)
 outcomesdata$outcome <- gsub('CO~2~', 'Carbon dioxide', outcomesdata$outcome)
 outcomesdata$outcome <- gsub('CH~4~', 'Methane', outcomesdata$outcome)
 outcomeyear <- data.frame(last_meas_year = as.numeric(outcomesdata$last_meas_year), outcome = outcomesdata$outcome)
 outcomeyear <- na.omit(outcomeyear)
-ggplot2::ggplot(data = outcomeyear, 
+outcomeyear <- ggplot2::ggplot(data = outcomeyear, 
                            ggplot2::aes(x = last_meas_year, fill = outcome)) +
   ggplot2::geom_bar(stat="count", color = 'White') + 
   ggplot2::scale_fill_manual(values = c("#EAC4D5", "#8CB3B0", "#5B5F97", "#DBB957")) +
@@ -412,13 +467,17 @@ ggplot2::ggplot(data = outcomeyear,
   ggplot2::labs(
     x = "Final measurement year", 
     y = "Number of studies")
+pdf(file = 'figures/figure 11.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  outcomeyear
+dev.off()
+outcomeyear
 ```
 
 
 **Outcome measurement methods:** The most commonly reported measurement method was '`r tolower(topocmeas[,1])`' (n = `r topocmeas[,2]`) (see Figure \@ref(fig:ocmeasplot)). A substantial proportion of studies (n = `r ocmeas_nr`) did not report the outcome sampling methods used. 
 
-``` {r ocmeasplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Experimental designs employed across studies in the systematic map."}
-ggplot2::ggplot(data = data, 
+``` {r ocmeasplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Experimental designs employed across studies in the systematic map.", results = "hide", fig.keep = 'all'}
+ocmeasplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = sampling_equip)) +
   ggplot2::geom_bar(color = 'White', 
                     fill = '#8CB3B0') + 
@@ -431,6 +490,10 @@ ggplot2::ggplot(data = data,
   ggplot2::labs(
     x = "Outcome sampling equipment", 
     y = "Number of studies")
+pdf(file = 'figures/figure 12.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  ocmeasplot
+dev.off()
+ocmeasplot
 ```
 
 Open chambers were used in `r open` studies, whilst closed were used in `r closed` (it was not possible to ascertain this information for the remaining studies). Opaque chambers were used in `r opaque` studies, whilst transparent were used in `r transparent` (it was not possible to ascertain this information for the remaining studies). 
@@ -438,11 +501,14 @@ Open chambers were used in `r open` studies, whilst closed were used in `r close
 
 ### Heat maps {-}
 
-In Figure 
+In Figure \@ref(fig:bubbleplot), interventions have been plotted against countries for the three measured outcomes. 
 
-``` {r bubbleplot, echo=FALSE, fig.cap="Bubble plot of intervention type against study country and measured outcome for studies in the systematic map. n indicates the number of studies.", fig.dim = c(12, 10)}
+``` {r bubbleplot, echo=FALSE, fig.cap="Bubble plot of intervention type against sstudy country and measured outcome for studies in the systematic map. n indicates the number of studies. Countries coloured by continent", fig.dim = c(12, 10), warning=FALSE, messages=FALSE, results = "hide", fig.keep = 'all'}
 source('bubbleplot.R')
-bubbleplot(x_var = summdat$all_interv, 
+summdat$outcome <- gsub('N2O', 'Nitrous oxide', summdat$outcome)
+summdat$outcome <- gsub('CO2', 'Carbon dioxide', summdat$outcome)
+summdat$outcome <- gsub('CH4', 'Methane', summdat$outcome)
+bubbleplot <- bubbleplot(x_var = summdat$all_interv, 
            y_var = summdat$country, 
           clr_var = summdat$outcome,
           clr_legend = 'Outcome',
@@ -453,6 +519,11 @@ bubbleplot(x_var = summdat$all_interv,
           palette = 'Set2',
           size_from = 0.1,
           size_to = 6,
-          interactive = FALSE)
+          interactive = FALSE) +
+    ggplot2::theme(axis.text.y = ggplot2::element_text(colour = c(rep("#bea6b2", 1), rep("#85a8bb", 3), rep("#bea6b2", 12), rep("#85a8bb", 1), rep("#bea6b2", 2), rep("#85a8bb", 2), rep("#bea6b2", 3))))
+pdf(file = 'figures/figure 13.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  bubbleplot
+dev.off()
+bubbleplot
 ```
 
