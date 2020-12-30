@@ -18,6 +18,12 @@ library(magrittr)
 data <- data<- read.csv('ghg_smap.csv')
 data$rownum <- seq(1, nrow(data)) #add row numbers
 
+buildGSlink <- function(title) {
+  GSlink <- sub(" ", "", paste0("https://scholar.google.co.uk/scholar?start=0&q=", gsub(" ", "+", (gsub("[[:punct:]]", "", title))), "&hl=en&as_sdt=0,5"))
+}
+data$url <- buildGSlink(data$title)
+write.csv(data, 'mapdatabase.csv', row.names = FALSE)
+
 #' Create unique article-level data for plots about articles
 articledat <- data %>%
   dplyr::distinct(citation_full, .keep_all = TRUE)
@@ -38,10 +44,14 @@ data$country <- gsub('Scotland', 'United Kingdom', data$country)
 country_summary <- data %>% 
   dplyr::count(country, sort = TRUE)
 country_summary <- country_summary[order(-country_summary$n),]
+country_summary2 <- country_summary
+country_summary2$url <- paste0('database.html?q=country_', country_summary2$country)
+write.csv(country_summary2, 'country_summary.csv', row.names=FALSE)
 above10pccountries <- subset(country_summary, n > (sum(n)/10))
 above10pccountries <- paste0(above10pccountries[,1], ' (', above10pccountries[,2], ')')
 
 #' Summarise by climate zone
+data$KPG_zone <- gsub('NR', 'Not reported', data$KPG_zone)
 clim_summary <- data %>% 
   dplyr::count(KPG_zone, sort = TRUE)
 clim_summary <- clim_summary[order(-clim_summary$n),] %>%
@@ -54,6 +64,8 @@ climno <- subset(clim_summary, clim_summary$KPG_zone == '')[2]
 data$soil_text_class <- trimws(data$soil_text_class)
 data$soil_text_class <- gsub('Clayloam', 'Clay loam', data$soil_text_class)
 data$soil_text_class <- gsub('NR', 'Not reported', data$soil_text_class)
+data$USDA_soil_class <- gsub('NR', 'Not reported', data$USDA_soil_class)
+data$FAO_soil_class <- gsub('NR', 'Not reported', data$FAO_soil_class)
 data$soil_text_class[!nzchar(data$soil_text_class)] <- "Not reported"
 data$soilorder <- factor(data$soil_text_class, levels=c("Clay", "Clay loam", "Loam", "Loamy sand", "Sand", "Sandy clay",  "Sandy clay loam", "Sandy loam", "Silt", "Silt loam", "Silty clay", "Silty clay loam", "Unclear", "Not reported"))
 soil_summary <- data %>% 
@@ -126,6 +138,7 @@ intervdata <- data %>%
                        multiple_interv_codes,
                        sep = ', ')
 intervdata$all_interv <- gsub('Multiple interventions', '', paste0(intervdata$interv_type, intervdata$multiple_interv_codes))
+intervdata$all_interv <- gsub('N/A', '', intervdata$all_interv)
 intervdata$all_interv <- stringr::str_to_sentence(tolower(intervdata$all_interv))
 allintervention_dat <- intervdata %>% 
   dplyr::count(all_interv, sort = TRUE)
@@ -191,23 +204,23 @@ Details of the number of records retained through each stage of the review proce
 
 ```{r flowchart, fig.cap="ROSES flow chart for the systematic map, showing the number of records retained at each stage of the review process. Produced using the R package 'ROSES_flowchart' (Haddaway 2020).", echo=FALSE}
 source('ROSES_flowchart.R')
-flowchart <- ROSES_flowchart(dbresults = 'xxx',
-                otherresults = 'xxx',
-                deduped = 'xxx',
-                dupesremoved = 'xxx',
-                tandaincl = 'xxx',
-                tandaexcl = 'xxx',
-                titleincl = 'xxx',
-                titleexcl = 'xxx',
-                abstractincl = 'xxx',
-                abstractexcl = 'xxx',
-                ftretr = 'xxx',
-                ftnotretr <- data.frame(reason = c('Not accessible', 'Not found'), n = c('xxx', 'xxx')),
-                ftincl = 'xxx',
-                ftexcl <- data.frame(reason = c('Population', 'Intervention', 'Comparator', 'Outcome', 'Study design'), n = c('xxx', 'xxx', 'xxx', 'xxx', 'xxx')),
-                prescreened = 'xxx',
-                studart <- c('xxx', 'xxx'),
-                finalmapincl = 'xxx',
+flowchart <- ROSES_flowchart(dbresults = '38,325',
+                otherresults = '500',
+                deduped = '25,683',
+                dupesremoved = '13,187',
+                tandaincl = '1,813',
+                tandaexcl = '23,825',
+                titleincl = '',
+                titleexcl = '',
+                abstractincl = '',
+                abstractexcl = '',
+                ftretr = '1,772',
+                ftnotretr <- data.frame(reason = c('Not accessible'), n = c('41')),
+                ftincl = '347',
+                ftexcl <- data.frame(reason = c('Relevant review', 'Population', 'Intervention', 'Comparator', 'Outcome', 'Study design', 'Duplicate', 'Language'), n = c('48', '825', '49', '68', '69', '188', '35', '127')),
+                prescreened = '2',
+                studart <- c('349', '536'),
+                finalmapincl = '536',
                 type = 'map')
 rsvg::rsvg_pdf(svg = charToRaw(DiagrammeRsvg::export_svg(flowchart)),
                    file = 'figures/figure1.pdf')
@@ -329,6 +342,7 @@ studylength2
 **Experimental design:** The most commonly used experimental design in the included studies was '`r expdes_summary[1,1]`', with `r expdes_summary[1,2]` studies, with '`r expdes_summary[2,1]`' the next most frequent (n = `r expdes_summary[2,2]`). Figure \@ref(fig:expdesplot) displays the frequency of all experimental designs. The experimental design was not reported or unclear in `r expdes_nr` and `r expdes_uncl` studies, respectively.
 
 ``` {r expdesplot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Experimental designs employed across studies in the systematic map.", results = "hide", fig.keep = 'all'}
+data$experimental_design <- factor(data$experimental_design, levels=c("Not reported", "Unclear", "Purposive", "Paired design", "Split/strip plot", "Latin square", "Randomised", "Randomised complete block"))
 expdesplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = experimental_design)) +
   ggplot2::geom_bar(stat = "count",
@@ -440,6 +454,7 @@ treatplot
 outcomes_summary$Outcome <- gsub('N~2~O', 'Nitrous oxide', outcomes_summary$Outcome)
 outcomes_summary$Outcome <- gsub('CO~2~', 'Carbon dioxide', outcomes_summary$Outcome)
 outcomes_summary$Outcome <- gsub('CH~4~', 'Methane', outcomes_summary$Outcome)
+outcomes_summary$Outcome <- gsub('NR', 'Not reported', outcomes_summary$Outcome)
 knitr::kable(outcomes_summary, caption = "Outcomes measured across studies in the systematic map. n indicates the number of studies.") 
 ```
 ``` {r outcometab2, echo=FALSE}
@@ -456,6 +471,7 @@ Figure \@ref(fig:outcomeyear) shows the distribution of measured outcomes across
 outcomesdata$outcome <- gsub('N~2~O', 'Nitrous oxide', outcomesdata$outcome)
 outcomesdata$outcome <- gsub('CO~2~', 'Carbon dioxide', outcomesdata$outcome)
 outcomesdata$outcome <- gsub('CH~4~', 'Methane', outcomesdata$outcome)
+outcomesdata$outcome <- gsub('NR', 'Not reported', outcomesdata$outcome)
 outcomeyear <- data.frame(last_meas_year = as.numeric(outcomesdata$last_meas_year), outcome = outcomesdata$outcome)
 outcomeyear <- na.omit(outcomeyear)
 outcomeyear <- ggplot2::ggplot(data = outcomeyear, 
@@ -477,6 +493,9 @@ outcomeyear
 **Outcome measurement methods:** The most commonly reported measurement method was '`r tolower(topocmeas[,1])`' (n = `r topocmeas[,2]`) (see Figure \@ref(fig:ocmeasplot)). A substantial proportion of studies (n = `r ocmeas_nr`) did not report the outcome sampling methods used. 
 
 ``` {r ocmeasplot, echo=FALSE, warning=FALSE, messages=FALSE, fig.cap="Experimental designs employed across studies in the systematic map.", results = "hide", fig.keep = 'all'}
+data$sampling_equip <- gsub('Dynamic chambers', 'Dynamic chamber', data$sampling_equip)
+data$sampling_equip <- gsub('NR', 'Not reported', data$sampling_equip)
+data$sampling_equip <- factor(data$sampling_equip, levels=c("Static chamber", "Dynamic chamber", "Both static and dynamic", "Eddy flux covariance tower", "Not reported"))
 ocmeasplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = sampling_equip)) +
   ggplot2::geom_bar(color = 'White', 
@@ -508,6 +527,7 @@ source('bubbleplot.R')
 summdat$outcome <- gsub('N2O', 'Nitrous oxide', summdat$outcome)
 summdat$outcome <- gsub('CO2', 'Carbon dioxide', summdat$outcome)
 summdat$outcome <- gsub('CH4', 'Methane', summdat$outcome)
+summdat$outcome <- gsub('NR', 'Not reported', summdat$outcome)
 bubbleplot <- bubbleplot(x_var = summdat$all_interv, 
            y_var = summdat$country, 
           clr_var = summdat$outcome,
