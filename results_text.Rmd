@@ -217,7 +217,7 @@ flowchart <- ROSES_flowchart(dbresults = '38,325',
                 ftretr = '1,772',
                 ftnotretr <- data.frame(reason = c('Not accessible'), n = c('41')),
                 ftincl = '347',
-                ftexcl <- data.frame(reason = c('Relevant review', 'Population', 'Intervention', 'Comparator', 'Outcome', 'Study design', 'Duplicate', 'Language'), n = c('48', '825', '49', '68', '69', '188', '35', '127')),
+                ftexcl <- data.frame(reason = c('Relevant review', 'Population', 'Intervention', 'Comparator', 'Outcome', 'Study design', 'Duplicate', 'Language', 'Superseded'), n = c('48', '825', '49', '68', '69', '188', '35', '127', '16')),
                 prescreened = '2',
                 studart <- c('349', '536'),
                 finalmapincl = '536',
@@ -433,6 +433,7 @@ intervplotb
 **Treatments:** Within intervention types, studies often investigated multiple treatment levels/types (see Figure \@ref(fig:treatplot)). The median number of treatments was `r median(na.omit(data$treatments))`.
 
 ``` {r treatplot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Number of treatments investigated in studies included in the systematic map", results = "hide", fig.keep = 'all'}
+data$treatments <- as.numeric(data$treatments)
 treatplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = treatments)) +
   ggplot2::geom_bar(color = 'White', 
