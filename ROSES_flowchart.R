@@ -398,6 +398,9 @@ ROSES_flowchart <- function (dbresults,
       ), "', width = 4, height = 0.5, pos='4,5.5!', tooltip = '']
       
       ftexcl [label = '", paste0(text_wrap(ftexcl_text, 40),
+                                 ' (n = ',
+                                 sum(as.numeric(ftexcl[,2])),
+                                 ')',
                                  '\n\nExcluded on:\n',
                                  paste(paste0(ftexcl[,1], ' (n=', ftexcl[,2], ')'), collapse = '\n')
       ), "', width = 4, height = 0.5, pos='9,", ftexclh, "!', tooltip = '']  
