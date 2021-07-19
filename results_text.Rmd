@@ -184,7 +184,7 @@ ocmeas_summary <- data %>%
   dplyr::count(sampling_equip, sort = TRUE)
 data$sampling_equip <- factor(data$sampling_equip, levels=c(ocmeas_summary[,1]))
 ocmeas_nr <- expss::vlookup('Not reported', ocmeas_summary, 'n')
-topocmeas <- if (ocmeas_summary[1,1] == 'NR'){ocmeas_summary[2,]} else {ocmeas_summary[1,]}
+topocmeas <- if (ocmeas_summary[1,1] == 'Not reported'){ocmeas_summary[2,]} else {ocmeas_summary[1,]}
 opcl_sum <- data %>% 
   dplyr::count(open_closed, sort = TRUE)
 open <- expss::vlookup('Open', opcl_sum, 'n')
@@ -206,6 +206,11 @@ summdat <- alloutintdata %>%
 summdat$country <- factor(summdat$country, levels=c("Kenya", "Ethiopia", "South Korea", "Japan", "China", "United Kingdom", "Turkey", "Spain", "Portugal", "Netherlands",
                                                     "Italy", "Ireland", "Greece", "Germany", "France", "Denmark", "Croatia", "Belgium", "Israel", "USA", "Canada", "New Zealand",
                                                     "Australia", "Chile", "Brazil", "Argentina"))
+intervdata$multiple_interv_codes <- trimws(stringr::str_to_sentence(tolower(intervdata$multiple_interv_codes)))
+climzone_int <- intervdata %>% 
+  dplyr::count(KPG_zone, multiple_interv_codes, sort = TRUE)
+soil_int <- intervdata %>% 
+  dplyr::count(soilorder, multiple_interv_codes, sort = TRUE)
 ```
 
 # Results {-}
@@ -397,9 +402,9 @@ spatrepplot
 **Temporal replication:** Most studies in the map did not take measurements at more than one time point (n = `r temprep_no`): `r temprep_yes` studies did employ temporal replication, and `r temprep_nr` studies did not report this information.
 \newline 
 \newline 
-**Interventions:** Figure \ref{fig:intervplot} shows the types of interventions investigated in the evidence base. Here, we define intervention types as the broad category of management practice used, as opposed to treatments (see below), which are the individual managemnet practices investigated within each study. A total of `r interv_mult` out of `r num_stud` studies examined multiple interventions together. The top three most frequently studied single intervention types were `r tolower(intervention_dat[2,1])` (n = `r intervention_dat[2,2]`), `r tolower(intervention_dat[3,1])` (n = `r intervention_dat[3,2]`), and `r tolower(intervention_dat[4,1])` (n = `r intervention_dat[4,2]`). Across all intervention types, the top three most frequently studied were: 1) `r tolower(allintervention_dat[1,1])` (n = `r allintervention_dat[1,2]`); 2) `r tolower(allintervention_dat[2,1])` (n = `r allintervention_dat[2,2]`); 3) `r tolower(allintervention_dat[3,1])` (n = `r allintervention_dat[3,2]`); 4) `r tolower(allintervention_dat[4,1])` (n = `r allintervention_dat[4,2]`); and, 5) `r tolower(allintervention_dat[5,1])` (n = `r allintervention_dat[5,2]`). 
+**Interventions:** Figure \ref{fig:intervplot} shows the types of interventions investigated in the evidence base. Here, we define intervention types as the broad category of management practice used, as opposed to treatments (see below), which are the individual management practices investigated within each study. A total of `r interv_mult` out of `r num_stud` studies examined multiple interventions together. The top three most frequently studied single intervention types were `r tolower(intervention_dat[2,1])` (n = `r intervention_dat[2,2]`), `r tolower(intervention_dat[3,1])` (n = `r intervention_dat[3,2]`), and `r tolower(intervention_dat[4,1])` (n = `r intervention_dat[4,2]`). Across all intervention types, the top three most frequently studied were: 1) `r tolower(allintervention_dat[1,1])` (n = `r allintervention_dat[1,2]`); 2) `r tolower(allintervention_dat[2,1])` (n = `r allintervention_dat[2,2]`); 3) `r tolower(allintervention_dat[3,1])` (n = `r allintervention_dat[3,2]`); 4) `r tolower(allintervention_dat[4,1])` (n = `r allintervention_dat[4,2]`); and, 5) `r tolower(allintervention_dat[5,1])` (n = `r allintervention_dat[5,2]`). 
 
-``` {r intervplot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Interventions investigated in the studies within the systematic map: a) the number of studies investigating each type of intervention, and b) the number of studies investigating each intervention types", fig.show="hold", out.width="50%", results = "hide", fig.keep = 'all'}
+``` {r intervplot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Interventions investigated in the studies within the systematic map: a) the number of studies investigating each type of intervention, and b) the number of studies investigating each intervention type (including multiple intervention studies).", fig.show="hold", out.width="50%", results = "hide", fig.keep = 'all'}
 par(mfrow=c(2,1))
 intervplota <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = interv_type)) +
@@ -606,3 +611,37 @@ dev.off()
 bubbleplot
 ```
 
+
+In Figure \ref{fig:heatmap1}, interventions have been plotted against Köppen-Geiger climate zones in a heat map that shows the spread of evidence. 
+
+``` {r heatmap1, echo=FALSE, fig.cap="Bubble plot of intervention type against climate zone for studies in the systematic map. 'n' indicates the number of studies.", fig.dim = c(12, 10), warning=FALSE, messages=FALSE, results = "hide", fig.keep = 'all'}
+climate_interv_plot <- ggplot2::ggplot(climzone_int, ggplot2::aes(x = KPG_zone, y = multiple_interv_codes, fill = n)) + 
+  ggplot2::geom_tile() +
+  ggplot2::scale_fill_gradient(low = "#F3F7F6", high = "#395653", na.value = NA, guide = 'none') +
+  ggplot2::geom_label(ggplot2::aes(label = n), fill = 'white', size = 3) +
+  ggplot2::labs(
+    x = "Köppen_Geiger Zone", 
+    y = "Intervention type")
+pdf(file = 'figures/figure 15.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  climate_interv_plot
+dev.off()
+climate_interv_plot
+```
+
+
+In Figure \ref{fig:heatmap2}, interventions have been plotted against soil type in a heat map that shows the spread of evidence. 
+
+``` {r heatmap2, echo=FALSE, fig.cap="Bubble plot of intervention type against soil type for studies in the systematic map. 'n' indicates the number of studies.", fig.dim = c(12, 10), warning=FALSE, messages=FALSE, results = "hide", fig.keep = 'all'}
+soil_interv_plot <- ggplot2::ggplot(soil_int, ggplot2::aes(x = soilorder, y = multiple_interv_codes, fill = n)) + 
+  ggplot2::geom_tile() +
+  ggplot2::scale_fill_gradient(low = "#F3F7F6", high = "#395653", na.value = NA, guide = 'none') +
+  ggplot2::geom_label(ggplot2::aes(label = n), fill = 'white', size = 3) +
+  ggplot2::labs(
+    x = "Soil type", 
+    y = "Intervention type") +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust=1))
+pdf(file = 'figures/figure 15.pdf', width = (dev.size())[1], height = (dev.size())[2])
+  soil_interv_plot
+dev.off()
+soil_interv_plot
+```
