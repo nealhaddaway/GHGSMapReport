@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = FALSE, cache=FALSE)
 ```{r include=FALSE}
 library(magrittr)
 
-data <- data<- read.csv('ghg_smap.csv')
+data <- data<- read.csv('ghg_smap.csv', stringsAsFactors = FALSE)
 data$rownum <- seq(1, nrow(data)) #add row numbers
 
 buildGSlink <- function(title) {
@@ -234,7 +234,7 @@ flowchart <- ROSES_flowchart(dbresults = '38,325',
                 ftincl = '347',
                 ftexcl <- data.frame(reason = c('Relevant review', 'Population', 'Intervention', 'Comparator', 'Outcome', 'Study design', 'Duplicate', 'Language'), n = c('47', '825', '49', '70', '69', '188', '36', '127')),
                 prescreened = '4',
-                studart <- c('351', '538'),
+                studart <- c('350', '534'),
                 finalmapincl = '538',
                 type = 'map')
 rsvg::rsvg_pdf(svg = charToRaw(DiagrammeRsvg::export_svg(flowchart)),
