@@ -293,7 +293,7 @@ soiltextplot <- ggplot2::ggplot(data = data,
   ggplot2::scale_x_discrete(limits = rev(levels(data$soilorder))) +
   ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
                       ggplot2::aes(label = ..count..), 
-                      position = ggplot2::position_nudge(y = 3)) +
+                      position = ggplot2::position_nudge(y = 4)) +
   ggplot2::coord_flip() + 
   ggplot2::labs(
     x = "Soil texture classification", 
