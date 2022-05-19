@@ -32,10 +32,10 @@ articledat <- data %>%
 num_art <- nrow(articledat)
 num_stud <- nrow(data)
 pub_typePC <- data.frame('Type' = rownames(as.data.frame((summary(as.factor(articledat$pub_type))))), 'Articles' = (as.data.frame((summary(as.factor(articledat$pub_type)))))[,1])
-type_art <- expss::vlookup('Article', pub_typePC, 'Articles')
-type_thes <- expss::vlookup('Thesis', pub_typePC, 'Articles')
-type_conf <- expss::vlookup('Conference Proceeding', pub_typePC, 'Articles')
-type_rep <- expss::vlookup('Report', pub_typePC, 'Articles')
+type_art <- maditr::vlookup('Article', pub_typePC, 'Articles')
+type_thes <- maditr::vlookup('Thesis', pub_typePC, 'Articles')
+type_conf <- maditr::vlookup('Conference Proceeding', pub_typePC, 'Articles')
+type_rep <- maditr::vlookup('Report', pub_typePC, 'Articles')
 
 #' Summarise by country
 data$country <- gsub('Isreal', 'Israel', data$country)
@@ -70,7 +70,7 @@ data$soil_text_class[!nzchar(data$soil_text_class)] <- "Not reported"
 data$soilorder <- factor(data$soil_text_class, levels=c("Clay", "Clay loam", "Loam", "Loamy sand", "Sand", "Sandy clay",  "Sandy clay loam", "Sandy loam", "Silt", "Silt loam", "Silty clay", "Silty clay loam", "Unclear", "Not reported"))
 soil_summary <- data %>% 
   dplyr::count(soil_text_class, sort = TRUE)
-soilnr <- expss::vlookup('Not reported', soil_summary, 'n')
+soilnr <- maditr::vlookup('Not reported', soil_summary, 'n')
 soilnrdat <- subset(data, soil_text_class == 'Not reported')
 soilnr_summary <- soilnrdat %>% 
   dplyr::count(USDA_soil_class, FAO_soil_class, sort = TRUE) %>%
@@ -80,14 +80,14 @@ soilnr_summary <- soilnrdat %>%
 data$field_hist_descr <- trimws(data$field_hist_descr)
 fhist_summary <- data %>% 
   dplyr::count(field_hist_descr, sort = TRUE)
-fhist_yes <- expss::vlookup('Yes', fhist_summary, 'n')
+fhist_yes <- maditr::vlookup('Yes', fhist_summary, 'n')
 
 #' Study length
 stlength_summary <- data %>% 
   dplyr::count(total_months, sort = TRUE)
-stlength_nr <- expss::vlookup('NR', stlength_summary, 'n')
-stlength_unclear <- expss::vlookup('Unclear', stlength_summary, 'n')
-stlength_no <- expss::vlookup('', stlength_summary, 'n')
+stlength_nr <- maditr::vlookup('NR', stlength_summary, 'n')
+stlength_unclear <- maditr::vlookup('Unclear', stlength_summary, 'n')
+stlength_no <- maditr::vlookup('', stlength_summary, 'n')
 
 below12months <- subset(data, as.numeric(total_months) < 12)
 below12months_summary <- below12months %>% 
@@ -108,8 +108,8 @@ data$experimental_design[!nzchar(data$experimental_design)] <- "Not reported"
 data$experimental_design <- factor(data$experimental_design, levels=c("Purposive", "Paired design", "Split/strip plot", "Latin square", "Randomised", "Randomised complete block", "Unclear", "Not reported"))
 expdes_summary <- data %>% 
   dplyr::count(experimental_design, sort = TRUE)
-expdes_nr <- expss::vlookup('Not reported', expdes_summary, 'n')
-expdes_uncl <- expss::vlookup('Unclear', expdes_summary, 'n')
+expdes_nr <- maditr::vlookup('Not reported', expdes_summary, 'n')
+expdes_uncl <- maditr::vlookup('Unclear', expdes_summary, 'n')
 
 #' Spatial replication
 data$spatial_replic <- gsub('2 per treatment for treatments of A controlled-release fertilizer made from calcium nitrate coated in polyolefin resin, and Calcium nitrate. No replication for treatments of A controlled-release fertilizer made from Urea coated with polyolefin resin, and No nitrogen.', '2', data$spatial_replic)
@@ -121,9 +121,9 @@ sp_rep_dat <- data %>%
 temp_rep_dat <- data %>% 
   dplyr::count(temporal_replic, sort = TRUE) %>%
   dplyr::rename('Temporal replication' = temporal_replic)
-temprep_no <- expss::vlookup('No', temp_rep_dat, 'n')
-temprep_yes <- expss::vlookup('Yes', temp_rep_dat, 'n')
-temprep_nr <- expss::vlookup('Not reported', temp_rep_dat, 'n')
+temprep_no <- maditr::vlookup('No', temp_rep_dat, 'n')
+temprep_yes <- maditr::vlookup('Yes', temp_rep_dat, 'n')
+temprep_nr <- maditr::vlookup('Not reported', temp_rep_dat, 'n')
 if (is.na(temprep_nr) == TRUE){
   temprep_nr <- 'no'
 }
@@ -132,7 +132,7 @@ if (is.na(temprep_nr) == TRUE){
 intervention_dat <- data %>% 
   dplyr::count(interv_type, sort = TRUE)
 intervention_dat$interv_type <- gsub('Multiple-intervention', 'Multiple interventions', intervention_dat$interv_type)
-interv_mult <- expss::vlookup('Multiple interventions', intervention_dat, 'n')
+interv_mult <- maditr::vlookup('Multiple interventions', intervention_dat, 'n')
 intervdata <- data %>%
   tidyr::separate_rows(.,
                        multiple_interv_codes,
@@ -154,7 +154,7 @@ multoutcometab <- subset(outcomes_sumdat, nchar(Outcome) > 3)
 multoutcometab$Outcome <- gsub('N2O', 'N~2~O', multoutcometab$Outcome)
 multoutcometab$Outcome <- gsub('CO2', 'CO~2~', multoutcometab$Outcome)
 multoutcometab$Outcome <- gsub('CH4', 'CH~4~', multoutcometab$Outcome)
-alloutcomes <- expss::vlookup('CH~4~, CO~2~, N~2~O', multoutcometab, 'n')
+alloutcomes <- maditr::vlookup('CH~4~, CO~2~, N~2~O', multoutcometab, 'n')
 data$outcome <- gsub('NO2', 'N2O', data$outcome)
 data$outcome[!nzchar(data$outcome)] <- "Not reported"
 outcomesdata <- data %>%
@@ -183,16 +183,16 @@ data$sampling_equip <- gsub('NR', 'Not reported', data$sampling_equip)
 ocmeas_summary <- data %>% 
   dplyr::count(sampling_equip, sort = TRUE)
 data$sampling_equip <- factor(data$sampling_equip, levels=c(ocmeas_summary[,1]))
-ocmeas_nr <- expss::vlookup('Not reported', ocmeas_summary, 'n')
+ocmeas_nr <- maditr::vlookup('Not reported', ocmeas_summary, 'n')
 topocmeas <- if (ocmeas_summary[1,1] == 'Not reported'){ocmeas_summary[2,]} else {ocmeas_summary[1,]}
 opcl_sum <- data %>% 
   dplyr::count(open_closed, sort = TRUE)
-open <- expss::vlookup('Open', opcl_sum, 'n')
-closed <- expss::vlookup('Closed', opcl_sum, 'n')
+open <- maditr::vlookup('Open', opcl_sum, 'n')
+closed <- maditr::vlookup('Closed', opcl_sum, 'n')
 transpop_sum <- data %>% 
   dplyr::count(transp_opaque, sort = TRUE)
-transparent <- expss::vlookup('Transparent', transpop_sum, 'n')
-opaque <- expss::vlookup('Opaque', transpop_sum, 'n')
+transparent <- maditr::vlookup('Transparent', transpop_sum, 'n')
+opaque <- maditr::vlookup('Opaque', transpop_sum, 'n')
 
 #' Heat maps
 alloutintdata <- intervdata %>%
