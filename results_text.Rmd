@@ -253,7 +253,7 @@ yearplot <- ggplot2::ggplot(data = articledat,
   ggplot2::geom_bar(stat = "bin", 
                     binwidth = 1, 
                     color = 'White', 
-                    fill = '#8CB3B0') + 
+                    fill = '#196380') + 
   ggplot2::theme_minimal() + 
   ggplot2::labs(
     x = "Publication year", 
@@ -288,10 +288,10 @@ soiltextplot <- ggplot2::ggplot(data = data,
                            ggplot2::aes(x = soilorder)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
-                    fill = '#8CB3B0') + 
+                    fill = '#196380') + 
   ggplot2::theme_minimal() +
   ggplot2::scale_x_discrete(limits = rev(levels(data$soilorder))) +
-  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+  ggplot2::stat_count(geom = "text", colour = "#196380", size = 3.5,
                       ggplot2::aes(label = ..count..), 
                       position = ggplot2::position_nudge(y = 4)) +
   ggplot2::coord_flip() + 
@@ -320,7 +320,7 @@ studylength <- ggplot2::ggplot(data = data,
   ggplot2::geom_bar(stat = "bin", 
                     binwidth = .25,
                     color = 'White', 
-                    fill = '#8CB3B0') + 
+                    fill = '#196380') + 
   ggplot2::theme_minimal() +
   ggplot2::labs(
     x = "Study length in years", 
@@ -338,8 +338,8 @@ studylength2 <- ggplot2::ggplot(data = below12months,
                            ggplot2::aes(x = as.numeric(total_months))) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
-                    fill = '#8CB3B0') + 
-  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                    fill = '#196380') + 
+  ggplot2::stat_count(geom = "text", colour = "#196380", size = 3.5,
                       ggplot2::aes(label = ..count..), 
                       position = ggplot2::position_nudge(y = 1)) +
   ggplot2::theme_minimal() +
@@ -363,10 +363,10 @@ expdesplot <- ggplot2::ggplot(data = data,
                            ggplot2::aes(x = experimental_design)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
-                    fill = '#8CB3B0') + 
+                    fill = '#196380') + 
   ggplot2::theme_minimal() +
   ggplot2::coord_flip() + 
-  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+  ggplot2::stat_count(geom = "text", colour = "#196380", size = 3.5,
                       ggplot2::aes(label = ..count..), 
                       position = ggplot2::position_nudge(y = 10)) +
   ggplot2::labs(
@@ -385,8 +385,8 @@ spatrepplot <- ggplot2::ggplot(data = data,
                            ggplot2::aes(x = sp_rep)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
-                    fill = '#8CB3B0') + 
-  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+                    fill = '#196380') + 
+  ggplot2::stat_count(geom = "text", colour = "#196380", size = 3.5,
                       ggplot2::aes(label = ..count..), 
                       position = ggplot2::position_nudge(y = 5)) +
   ggplot2::theme_minimal() +
@@ -410,11 +410,11 @@ intervplota <- ggplot2::ggplot(data = data,
                            ggplot2::aes(x = interv_type)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
-                    fill = '#8CB3B0') + 
+                    fill = '#196380') + 
   ggplot2::theme_minimal() +
   ggplot2::scale_x_discrete(limits = rev(levels(data$interv_type))) +
   ggplot2::coord_flip() + 
-  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+  ggplot2::stat_count(geom = "text", colour = "#196380", size = 3.5,
                       ggplot2::aes(label = ..count..), 
                       position = ggplot2::position_nudge(y = 10)) +
   ggplot2::labs(
@@ -425,11 +425,11 @@ intervplotb <- ggplot2::ggplot(data = intervdata,
                            ggplot2::aes(x = all_interv)) +
   ggplot2::geom_bar(stat = "count",
                     color = 'White', 
-                    fill = '#8CB3B0') + 
+                    fill = '#196380') + 
   ggplot2::theme_minimal() +
   ggplot2::scale_x_discrete(limits = levels(intervdata$all_interv)) +
   ggplot2::coord_flip() + 
-  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+  ggplot2::stat_count(geom = "text", colour = "#196380", size = 3.5,
                       ggplot2::aes(label = ..count..), 
                       position = ggplot2::position_nudge(y = 10)) +
   ggplot2::labs(
@@ -453,7 +453,7 @@ data$treatments <- as.numeric(data$treatments)
 treatplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = treatments)) +
   ggplot2::geom_bar(color = 'White', 
-                    fill = '#8CB3B0') + 
+                    fill = '#196380') + 
   ggplot2::theme_minimal() +
   ggplot2::scale_x_continuous(breaks = c(0, 25, 50, 75, 100, 125)) +
   ggplot2::labs(
@@ -563,11 +563,11 @@ data$sampling_equip <- factor(data$sampling_equip, levels=c("Static chamber", "D
 ocmeasplot <- ggplot2::ggplot(data = data, 
                            ggplot2::aes(x = sampling_equip)) +
   ggplot2::geom_bar(color = 'White', 
-                    fill = '#8CB3B0') + 
+                    fill = '#196380') + 
   ggplot2::theme_minimal() +
   ggplot2::coord_flip() + 
   ggplot2::scale_x_discrete(limits = rev(levels(data$sampling_equip))) +
-  ggplot2::stat_count(geom = "text", colour = "#8CB3B0", size = 3.5,
+  ggplot2::stat_count(geom = "text", colour = "#196380", size = 3.5,
                       ggplot2::aes(label = ..count..), 
                       position = ggplot2::position_nudge(y = 10)) +
   ggplot2::labs(
